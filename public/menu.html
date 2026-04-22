@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comedor Institucional - Menú del Día</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
+                    <path d="M7 2v20"></path>
+                    <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
+                </svg>
+                <span>Comedor Institucional</span>
+            </div>
+            <div class="nav-user">
+                <!-- Saldo del Usuario -->
+                <div class="saldo-usuario" id="saldoUsuario" title="Tu saldo disponible">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="6" width="20" height="12" rx="2"/>
+                        <circle cx="12" cy="12" r="2"/>
+                        <path d="M6 12h.01M18 12h.01"/>
+                    </svg>
+                    <span id="montoSaldo">RD$0</span>
+                </div>
+
+                <!-- Campana de Notificaciones -->
+                <button class="btn-notif" onclick="toggleNotificaciones()" title="Notificaciones">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                    <span class="notif-badge" id="notifBadge">0</span>
+                </button>
+
+                <!-- Mis Reservaciones (Solo usuario) -->
+                <button class="btn-reservas" id="btnMisReservas" onclick="verMisReservaciones()" title="Mis reservaciones">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                </button>
+
+                <span id="nombreUsuario">Usuario</span>
+                <div class="user-badge" id="badgeRol">Estudiante</div>
+                <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+            </div>
+        </div>
+
+        <!-- Panel de Notificaciones -->
+        <div id="panelNotificaciones" class="panel-notif" style="display:none;">
+            <div class="panel-notif-header">
+                <h4>Notificaciones</h4>
+                <button onclick="limpiarNotificaciones()" class="btn-mini">Limpiar</button>
+            </div>
+            <div id="listaNotificaciones" class="panel-notif-body">
+                <!-- Notificaciones se cargan aquí -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="header-menu">
+        <h1>Menú del Día</h1>
+        <p class="header-subtitle">Selecciona tu comida del día</p>
+        <div class="fecha-actual" id="fechaActual"></div>
+    </header>
+
+    <!-- Barra de Búsqueda y Filtros -->
+    <div class="barra-filtros">
+        <div class="filtros-container">
+            <div class="busqueda-wrapper">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" id="buscarMenu" placeholder="Buscar menú, plato o ingrediente..." onkeyup="filtrarMenus()">
+            </div>
+            <div class="filtros-btns">
+                <button class="filtro-chip active" data-filtro="todos" onclick="aplicarFiltro('todos', this)">Todos</button>
+                <button class="filtro-chip" data-filtro="vegetariano" onclick="aplicarFiltro('vegetariano', this)">
+                    <span class="chip-icon">🌱</span> Vegetariano
+                </button>
+                <button class="filtro-chip" data-filtro="sin-gluten" onclick="aplicarFiltro('sin-gluten', this)">
+                    <span class="chip-icon">🌾</span> Sin Gluten
+                </button>
+                <button class="filtro-chip" data-filtro="disponibles" onclick="aplicarFiltro('disponibles', this)">
+                    <span class="chip-icon">✅</span> Con Cupo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Administrador -->
+    <div id="panelAdmin" class="admin-panel" style="display:none;">
+        <div class="admin-controls">
+            <h3>Panel de Administrador</h3>
+            <div class="admin-actions">
+                <button class="btn btn-secondary" onclick="verUsuarios()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    Ver Usuarios
+                </button>
+                <button class="btn btn-secondary" onclick="abrirEditorMenu()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Agregar Menú
+                </button>
+                <button class="btn btn-secondary" onclick="verReservasAdmin()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    Ver Reservaciones
+                </button>
+                <button class="btn btn-secondary" onclick="verEstadisticas()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"/>
+                        <line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    Estadísticas
+                </button>
+                <button class="btn btn-secondary" onclick="gestionarSaldos()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="6" width="20" height="12" rx="2"/>
+                        <circle cx="12" cy="12" r="2"/>
+                        <path d="M6 12h.01M18 12h.01"/>
+                    </svg>
+                    Recargar Saldos
+                </button>
+                <button class="btn btn-secondary" onclick="exportarReporte()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Exportar CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal de Menús -->
+    <main class="menu-container" id="menuContainer">
+        <!-- Los menús se generan dinámicamente desde JS -->
+    </main>
+
+    <!-- Modal Editor de Menú -->
+    <div id="modalEditor" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="tituloEditor">Agregar Nuevo Menú</h2>
+                <button class="modal-close" onclick="cerrarEditor()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditorMenu" onsubmit="guardarMenuEditor(event)">
+                    <input type="hidden" id="editorId">
+                    <div class="form-group">
+                        <label>Día / Título del Menú</label>
+                        <input type="text" id="editorDia" placeholder="Ej: Lunes, Martes Especial..." required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Plato Fuerte</label>
+                            <input type="text" id="editorPlato" placeholder="Ej: Pollo con arroz" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Bebida</label>
+                            <input type="text" id="editorBebida" placeholder="Ej: Jugo de naranja">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Postre</label>
+                            <input type="text" id="editorPostre" placeholder="Ej: Flan">
+                        </div>
+                        <div class="form-group">
+                            <label>Extra / Guarnición</label>
+                            <input type="text" id="editorExtra" placeholder="Ej: Ensalada">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Calorías</label>
+                            <input type="number" id="editorCalorias" placeholder="650" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Proteínas (g)</label>
+                            <input type="number" id="editorProteinas" placeholder="45" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Precio (RD$)</label>
+                            <input type="number" id="editorPrecio" placeholder="150" min="0" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Cupos Disponibles</label>
+                            <input type="number" id="editorCupos" placeholder="50" min="0" value="50" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Ruta de Imagen</label>
+                            <input type="text" id="editorImagen" placeholder="images/pollo.jpg">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Etiquetas de Dieta</label>
+                        <div class="checkbox-group">
+                            <label class="check-item">
+                                <input type="checkbox" id="editorVegetariano"> <span>🌱 Vegetariano</span>
+                            </label>
+                            <label class="check-item">
+                                <input type="checkbox" id="editorSinGluten"> <span>🌾 Sin Gluten</span>
+                            </label>
+                            <label class="check-item">
+                                <input type="checkbox" id="editorEspecial"> <span>⭐ Especial</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="cerrarEditor()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Menú</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Mis Reservaciones -->
+    <div id="modalMisReservas" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Mis Reservaciones</h2>
+                <button class="modal-close" onclick="cerrarMisReservas()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="listaMisReservas" class="reservas-lista">
+                    <!-- Reservaciones se cargan aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Reservaciones Admin -->
+    <div id="modalReservasAdmin" class="modal" style="display:none;">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h2>Todas las Reservaciones</h2>
+                <button class="modal-close" onclick="cerrarReservasAdmin()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="tabs-filtros">
+                    <button class="tab-btn active" onclick="filtrarReservas('todas', this)">Todas</button>
+                    <button class="tab-btn" onclick="filtrarReservas('hoy', this)">Hoy</button>
+                    <button class="tab-btn" onclick="filtrarReservas('pendientes', this)">Pendientes</button>
+                    <button class="tab-btn" onclick="filtrarReservas('entregadas', this)">Entregadas</button>
+                </div>
+                <div id="listaReservasAdmin" class="reservas-lista"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Usuarios -->
+    <div id="modalUsuarios" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Usuarios Registrados</h2>
+                <button class="modal-close" onclick="cerrarModalUsuarios()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="usuarios-lista" id="listaUsuarios"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Recargar Saldo -->
+    <div id="modalSaldos" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Gestionar Saldos</h2>
+                <button class="modal-close" onclick="cerrarSaldos()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="listaSaldos" class="usuarios-lista"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Estadísticas -->
+    <div id="modalEstadisticas" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Estadísticas del Comedor</h2>
+                <button class="modal-close" onclick="cerrarModalEstadisticas()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="estadisticas-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <h3 id="totalUsuarios">0</h3>
+                            <p>Usuarios Totales</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🍽️</div>
+                        <div class="stat-info">
+                            <h3 id="reservasHoy">0</h3>
+                            <p>Reservas Hoy</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-info">
+                            <h3 id="totalReservas">0</h3>
+                            <p>Reservas Totales</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-info">
+                            <h3 id="menuFavorito">-</h3>
+                            <p>Menú Más Popular</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-info">
+                            <h3 id="ingresosTotal">RD$0</h3>
+                            <p>Ingresos Totales</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🍴</div>
+                        <div class="stat-info">
+                            <h3 id="totalMenus">0</h3>
+                            <p>Menús Activos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 Comedor Institucional - Sistema de Gestión de Menús</p>
+    </footer>
+
+    <script src="menu.js"></script>
+</body>
+</html>
